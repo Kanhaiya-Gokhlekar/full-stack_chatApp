@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: backend-deployment
-  namespace: chat-app
+  namespace: chatapp
 spec:
   replicas: 1
   selector:
@@ -11,13 +11,17 @@ spec:
   template:
     metadata:
       name: backend-pod
-      namespace: chat-app
-      labels: 
+      namespace: chatapp
+      labels:
         app: backend
     spec:
+      initContainers:
+        - name: wait-for-mongodb
+          image: busybox
+          command: ['sh', '-c', 'until nc -z mongodb 27017; do echo "⏳ Waiting for MongoDB..."; sleep 3; done']
       containers:
       - name: chatapp-backend
-        image: trainwithshubham/chatapp-backend:latest
+        image: kanhaiya05/chatapp-backend:latest
         ports:
         - containerPort: 5001
         env:
@@ -29,6 +33,6 @@ spec:
           valueFrom:
             secretKeyRef:
               name: chatapp-secrets
-              key: jwt 
+              key: jwt
         - name: PORT
           value: "5001"
